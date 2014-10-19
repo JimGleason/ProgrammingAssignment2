@@ -1,5 +1,7 @@
 # R Programming Week 2 Homework
 # Read files (format: dir/num.csv where num is 3 digits with leading zeros)
+# NOTE: Using rbind to create a single data.frame doesn't preserve the order of the
+#       ids when counting complete frames.
 # Params:
 #    directory (directory containing csv files)
 #    ids (vector of ids indicating datasets)
@@ -8,19 +10,16 @@
 
 complete <- function (directory="specdata", id=1:332) {
     
-    vec <- as.data.frame (character())
+    vec <- list()
     
+    # Read the files as a list of data.frames
     for (i in id) {
-        fname <- sprintf("%s/%03d.csv", directory, i)
-        if (file.exists(fname)) {
-            vec <- rbind (vec, read.csv(fname))
-        } else {
-            return (paste ("Invalid monitor ID # ", i))
-        }
+        vec [[length(vec) + 1]] <- read.csv(sprintf("%s/%03d.csv", directory, i))
     }
-
+    
+    
     # Note that the ID column contains the ID for each row
-    count <- tapply (complete.cases(vec), vec[["ID"]], sum)
-    data.frame (id=dimnames(count)[[1]], count)
+    count <- sapply (vec, function (x) {sum(complete.cases(x))})
+    data.frame (id=id, nobs=count)
     
 }
